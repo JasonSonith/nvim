@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # install.sh — set up Jason's Neovim + tmux config on a fresh machine
+# Supports: Ubuntu / Debian / Kali / Mint (apt), Fedora / RHEL (dnf), Arch (pacman)
 set -euo pipefail
 
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -7,31 +8,104 @@ TS=$(date +%s)
 
 color() { printf "\033[1;36m%s\033[0m\n" "$1"; }
 warn()  { printf "\033[1;33m%s\033[0m\n" "$1"; }
+info()  { printf "    %s\n" "$1"; }
 
-color "==> Installing system packages"
-if command -v apt >/dev/null 2>&1; then
-  sudo apt update
-  sudo apt install -y \
-    git curl tar unzip build-essential \
-    tmux \
-    ripgrep fd-find \
-    python3 python3-pip python3-venv \
-    nodejs npm
-elif command -v dnf >/dev/null 2>&1; then
-  sudo dnf install -y git curl tar unzip make gcc gcc-c++ tmux ripgrep fd-find python3 python3-pip nodejs npm
-elif command -v pacman >/dev/null 2>&1; then
-  sudo pacman -Sy --noconfirm git curl tar unzip base-devel tmux ripgrep fd python python-pip nodejs npm
+# ---------- Detect distro ----------
+DISTRO_ID=""
+DISTRO_LIKE=""
+DISTRO_PRETTY="unknown"
+if [[ -f /etc/os-release ]]; then
+  # shellcheck disable=SC1091
+  . /etc/os-release
+  DISTRO_ID="${ID:-}"
+  DISTRO_LIKE="${ID_LIKE:-}"
+  DISTRO_PRETTY="${PRETTY_NAME:-$ID}"
+fi
+color "==> Detected: ${DISTRO_PRETTY}"
+
+# ---------- sudo wrapper (no-op when running as root) ----------
+if [[ $EUID -eq 0 ]]; then
+  SUDO=""
+  info "running as root — skipping sudo"
 else
-  warn "Unknown package manager. Install manually: git, curl, tmux, ripgrep, fd, python3, nodejs, npm, build tools."
+  if ! command -v sudo >/dev/null 2>&1; then
+    warn "sudo not installed and you are not root. Install sudo or re-run as root."
+    exit 1
+  fi
+  SUDO="sudo"
 fi
 
+# ---------- Package manager dispatch ----------
+is_apt_family() {
+  case "$DISTRO_ID" in ubuntu|debian|kali|linuxmint|pop|elementary|raspbian) return 0 ;; esac
+  case " $DISTRO_LIKE " in *" debian "*|*" ubuntu "*) return 0 ;; esac
+  return 1
+}
+
+color "==> Installing system packages"
+if is_apt_family || command -v apt >/dev/null 2>&1; then
+  info "package manager: apt (${DISTRO_ID:-debian-family})"
+  $SUDO apt update
+
+  PKGS=(
+    git curl wget tar unzip ca-certificates
+    build-essential pkg-config
+    tmux
+    ripgrep fd-find
+    python3 python3-pip python3-venv
+  )
+
+  # Kali ships nodejs in `nodejs` package; some Ubuntu releases want both nodejs and npm.
+  # On Ubuntu 22.04 the apt nodejs is 12.x — too old for ts_ls. We install via NodeSource if needed.
+  PKGS+=(nodejs npm)
+
+  # Kali-only nice-to-haves (skip silently on others)
+  if [[ "$DISTRO_ID" == "kali" ]]; then
+    PKGS+=(xclip)  # for nvim clipboard integration on Kali Xorg sessions
+  fi
+
+  $SUDO apt install -y "${PKGS[@]}"
+
+  # Verify Node version; if too old, replace with a recent NodeSource build
+  if command -v node >/dev/null 2>&1; then
+    NODE_MAJOR=$(node -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0)
+    if [[ "$NODE_MAJOR" -lt 18 ]]; then
+      warn "Node ${NODE_MAJOR} is too old for some LSPs. Upgrading via NodeSource…"
+      curl -fsSL https://deb.nodesource.com/setup_20.x | $SUDO -E bash -
+      $SUDO apt install -y nodejs
+    else
+      info "node $(node -v) — OK"
+    fi
+  fi
+
+  # Some Debian-family installs only put fd at /usr/bin/fdfind — symlink for sanity
+  if command -v fdfind >/dev/null 2>&1 && ! command -v fd >/dev/null 2>&1; then
+    $SUDO ln -sf "$(command -v fdfind)" /usr/local/bin/fd
+    info "linked fdfind -> fd"
+  fi
+
+elif command -v dnf >/dev/null 2>&1; then
+  info "package manager: dnf"
+  $SUDO dnf install -y git curl wget tar unzip make gcc gcc-c++ pkgconfig tmux ripgrep fd-find python3 python3-pip nodejs npm
+
+elif command -v pacman >/dev/null 2>&1; then
+  info "package manager: pacman"
+  $SUDO pacman -Sy --noconfirm git curl wget tar unzip base-devel pkgconf tmux ripgrep fd python python-pip nodejs npm
+
+else
+  warn "Unknown package manager. Install manually: git, curl, tmux, ripgrep, fd, python3, nodejs (>=18), npm, build tools."
+fi
+
+# ---------- Neovim ----------
 color "==> Installing Neovim (if missing or outdated)"
 need_install=1
 if command -v nvim >/dev/null 2>&1; then
   current=$(nvim --version | head -1 | awk '{print $2}')
   if [[ "$current" > "v0.9.99" ]]; then
     need_install=0
-    echo "    nvim ${current} already present"
+    info "nvim ${current} already present"
+  else
+    info "nvim ${current} is too old, replacing"
   fi
 fi
 if [[ $need_install -eq 1 ]]; then
@@ -43,14 +117,15 @@ if [[ $need_install -eq 1 ]]; then
   esac
   if [[ -n "$tarball" ]]; then
     curl -fsSL "https://github.com/neovim/neovim/releases/latest/download/${tarball}" -o "/tmp/${tarball}"
-    sudo tar -C /opt -xzf "/tmp/${tarball}"
+    $SUDO tar -C /opt -xzf "/tmp/${tarball}"
     extracted_dir=$(tar -tzf "/tmp/${tarball}" | head -1 | cut -d/ -f1)
-    sudo ln -sf "/opt/${extracted_dir}/bin/nvim" /usr/local/bin/nvim
+    $SUDO ln -sf "/opt/${extracted_dir}/bin/nvim" /usr/local/bin/nvim
     rm "/tmp/${tarball}"
-    echo "    installed nvim -> /usr/local/bin/nvim"
+    info "installed nvim -> /usr/local/bin/nvim ($(/usr/local/bin/nvim --version | head -1 | awk '{print $2}'))"
   fi
 fi
 
+# ---------- Symlinks ----------
 color "==> Symlinking configs"
 mkdir -p "$HOME/.config"
 
@@ -60,21 +135,28 @@ backup_then_link() {
     rm "$dst"
   elif [[ -e "$dst" ]]; then
     mv "$dst" "${dst}.bak.${TS}"
-    echo "    backed up: ${dst} -> ${dst}.bak.${TS}"
+    info "backed up: ${dst} -> ${dst}.bak.${TS}"
   fi
   ln -s "$src" "$dst"
-  echo "    linked: $src -> $dst"
+  info "linked: $src -> $dst"
 }
 
 backup_then_link "${DOTFILES_DIR}/nvim" "$HOME/.config/nvim"
 backup_then_link "${DOTFILES_DIR}/tmux/tmux.conf" "$HOME/.tmux.conf"
 
-color "==> Bootstrapping Neovim plugins (this may take a minute)"
+# ---------- Plugins ----------
+color "==> Bootstrapping Neovim plugins (may take a minute)"
 nvim --headless "+Lazy! sync" "+qa" 2>/dev/null || true
 nvim --headless "+TSUpdateSync" "+qa" 2>/dev/null || true
 
+# ---------- Done ----------
 color "==> Done"
 cat <<EOF
+
+Distro:    ${DISTRO_PRETTY}
+nvim:      $(command -v nvim) ($(nvim --version | head -1 | awk '{print $2}'))
+tmux:      $(command -v tmux) ($(tmux -V | awk '{print $2}'))
+node:      $(command -v node 2>/dev/null || echo "(not installed)") $(node --version 2>/dev/null || echo "")
 
 Next steps:
   tmux              # start a session
@@ -84,7 +166,7 @@ Next steps:
     Ctrl-a r        # reload tmux config
 
   nvim .            # open the project tree
-  press Space and wait to see the keymap popup (which-key)
+  Press Space and wait to see the keymap popup (which-key)
 
 For modes / motions / cheat sheets, see your Obsidian vault: Neovim/ folder.
 EOF
