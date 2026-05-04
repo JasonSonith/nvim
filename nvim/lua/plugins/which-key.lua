@@ -12,6 +12,7 @@ return {
       { "<leader>g", group = "git / lsp goto" },
       { "<leader>f", group = "find" },
       { "<leader>c", group = "code" },
+      { "<leader>cv", desc = "Toggle code suggestions" },
       { "<leader>r", group = "rename" },
       { "<leader>t", group = "test" },
       { "<leader>1", desc = "Tab 1" },

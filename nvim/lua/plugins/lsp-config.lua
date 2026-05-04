@@ -11,7 +11,7 @@ return {
     lazy = false,
     dependencies = { "williamboman/mason.nvim" },
     opts = {
-      ensure_installed = { "lua_ls", "ts_ls", "html", "pyright", "bashls" },
+      ensure_installed = { "lua_ls", "ts_ls", "html", "pyright", "bashls", "clangd", "ruff" },
       automatic_enable = true,
     },
   },
@@ -22,6 +22,15 @@ return {
     config = function()
       local capabilities = require("cmp_nvim_lsp").default_capabilities()
       vim.lsp.config("*", { capabilities = capabilities })
+
+      vim.diagnostic.config({
+        virtual_text = { prefix = "●", spacing = 2 },
+        signs = true,
+        underline = true,
+        update_in_insert = false,
+        severity_sort = true,
+        float = { border = "rounded", source = true },
+      })
 
       vim.keymap.set("n", "K", vim.lsp.buf.hover, {})
       vim.keymap.set("n", "<leader>gd", vim.lsp.buf.definition, {})
