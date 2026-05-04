@@ -55,27 +55,46 @@ if is_apt_family || command -v apt >/dev/null 2>&1; then
     python3 python3-pip python3-venv
   )
 
-  # Kali ships nodejs in `nodejs` package; some Ubuntu releases want both nodejs and npm.
-  # On Ubuntu 22.04 the apt nodejs is 12.x — too old for ts_ls. We install via NodeSource if needed.
-  PKGS+=(nodejs npm)
-
   # Kali-only nice-to-haves (skip silently on others)
   if [[ "$DISTRO_ID" == "kali" ]]; then
     PKGS+=(xclip)  # for nvim clipboard integration on Kali Xorg sessions
   fi
 
+  # Decide whether to ask apt for nodejs/npm. If a modern Node is already installed
+  # (e.g. from NodeSource), apt's npm Conflicts with it — adding both to PKGS makes
+  # the entire install fail with unsatisfiable dependencies.
+  NODE_OK=0
+  if command -v node >/dev/null 2>&1 && command -v npm >/dev/null 2>&1; then
+    EXISTING_NODE_MAJOR=$(node -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0)
+    if (( EXISTING_NODE_MAJOR >= 18 )); then
+      NODE_OK=1
+      info "node $(node -v) and npm $(npm -v) already installed — skipping apt nodejs/npm"
+    fi
+  fi
+  if (( NODE_OK == 0 )); then
+    PKGS+=(nodejs npm)
+  fi
+
   $SUDO apt install -y "${PKGS[@]}"
 
-  # Verify Node version; if too old, replace with a recent NodeSource build
-  if command -v node >/dev/null 2>&1; then
+  # If we DID just install Node from apt and it's still too old, upgrade via NodeSource.
+  # On Ubuntu 22.04 apt's nodejs is 12.x; NodeSource ships current LTS.
+  if (( NODE_OK == 0 )) && command -v node >/dev/null 2>&1; then
     NODE_MAJOR=$(node -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0)
-    if [[ "$NODE_MAJOR" -lt 18 ]]; then
-      warn "Node ${NODE_MAJOR} is too old for some LSPs. Upgrading via NodeSource…"
+    if (( NODE_MAJOR < 18 )); then
+      warn "Node ${NODE_MAJOR} is too old. Upgrading via NodeSource…"
       curl -fsSL https://deb.nodesource.com/setup_20.x | $SUDO -E bash -
       $SUDO apt install -y nodejs
     else
       info "node $(node -v) — OK"
     fi
+  fi
+
+  # Stale NodeSource sources can break `apt update` after Kali tightened SHA1 policy
+  # (Feb 2026). Just warn — don't auto-remove user's apt sources.
+  if grep -rqsE "deb\.nodesource\.com.*node_(1[0-7])\.x" /etc/apt/sources.list.d/ 2>/dev/null; then
+    warn "Old NodeSource source detected in /etc/apt/sources.list.d/. May cause noisy SHA1 warnings during apt update."
+    warn "  Fix: sudo rm /etc/apt/sources.list.d/nodesource.list (and /etc/apt/keyrings/nodesource.gpg)"
   fi
 
   # Some Debian-family installs only put fd at /usr/bin/fdfind — symlink for sanity
