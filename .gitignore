@@ -1,0 +1,20 @@
+# lazy.nvim and treesitter installs are user-data dirs, not part of repo
+# but in case any leak in:
+.cache/
+data/
+state/
+shada/
+
+# editor / OS
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# secrets
+.env
+.env.*
+*.local
+
+# host-specific overrides — opt in by removing this line if you want to commit them
+nvim/lua/local.lua
