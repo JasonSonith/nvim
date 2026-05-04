@@ -37,9 +37,20 @@ return {
         local arg = vim.fn.argv(0)
         if vim.fn.isdirectory(arg) == 1 then
           vim.cmd("Neotree filesystem position=current dir=" .. vim.fn.fnameescape(arg))
-        else
-          vim.cmd("Neotree filesystem show left")
+          return
         end
+
+        -- File arg: pick a tree root that actually contains the file so
+        -- follow_current_file doesn't trigger neo-tree's "File not in cwd" prompt.
+        local file_path = vim.fn.fnamemodify(arg, ":p")
+        local cwd = vim.fn.getcwd():gsub("/$", "") .. "/"
+        local root
+        if vim.startswith(file_path, cwd) then
+          root = vim.fn.getcwd()
+        else
+          root = vim.fn.fnamemodify(file_path, ":h")
+        end
+        vim.cmd("Neotree filesystem show left dir=" .. vim.fn.fnameescape(root))
       end,
     })
   end,
