@@ -97,15 +97,24 @@ else
 fi
 
 # ---------- Neovim ----------
+# Require >= 0.10. Compare numerically (string compare gets "0.11" < "0.9" wrong).
+NVIM_MIN_MAJOR=0
+NVIM_MIN_MINOR=10
+
 color "==> Installing Neovim (if missing or outdated)"
 need_install=1
 if command -v nvim >/dev/null 2>&1; then
-  current=$(nvim --version | head -1 | awk '{print $2}')
-  if [[ "$current" > "v0.9.99" ]]; then
+  current_full=$(nvim --version | head -1 | awk '{print $2}')                 # e.g. "v0.11.6"
+  current_clean="${current_full#v}"                                           # "0.11.6"
+  current_major="${current_clean%%.*}"
+  rest="${current_clean#*.}"
+  current_minor="${rest%%.*}"
+  if (( current_major > NVIM_MIN_MAJOR )) || \
+     (( current_major == NVIM_MIN_MAJOR && current_minor >= NVIM_MIN_MINOR )); then
     need_install=0
-    info "nvim ${current} already present"
+    info "nvim ${current_full} already present"
   else
-    info "nvim ${current} is too old, replacing"
+    info "nvim ${current_full} is below ${NVIM_MIN_MAJOR}.${NVIM_MIN_MINOR}, replacing"
   fi
 fi
 if [[ $need_install -eq 1 ]]; then
@@ -116,12 +125,16 @@ if [[ $need_install -eq 1 ]]; then
     *) warn "Unsupported arch: $arch. Install Neovim manually."; tarball="" ;;
   esac
   if [[ -n "$tarball" ]]; then
-    curl -fsSL "https://github.com/neovim/neovim/releases/latest/download/${tarball}" -o "/tmp/${tarball}"
-    $SUDO tar -C /opt -xzf "/tmp/${tarball}"
-    extracted_dir=$(tar -tzf "/tmp/${tarball}" | head -1 | cut -d/ -f1)
-    $SUDO ln -sf "/opt/${extracted_dir}/bin/nvim" /usr/local/bin/nvim
-    rm "/tmp/${tarball}"
-    info "installed nvim -> /usr/local/bin/nvim ($(/usr/local/bin/nvim --version | head -1 | awk '{print $2}'))"
+    info "downloading $tarball"
+    if ! curl -fsSL "https://github.com/neovim/neovim/releases/latest/download/${tarball}" -o "/tmp/${tarball}"; then
+      warn "Failed to download Neovim. Check network. Continuing with whatever nvim is on PATH."
+    else
+      $SUDO tar -C /opt -xzf "/tmp/${tarball}"
+      extracted_dir=$(tar -tzf "/tmp/${tarball}" | head -1 | cut -d/ -f1)
+      $SUDO ln -sf "/opt/${extracted_dir}/bin/nvim" /usr/local/bin/nvim
+      rm "/tmp/${tarball}"
+      info "installed nvim -> /usr/local/bin/nvim ($(/usr/local/bin/nvim --version | head -1 | awk '{print $2}'))"
+    fi
   fi
 fi
 
