@@ -13,6 +13,9 @@ return {
       mode = "cursor",
       separator = nil,
       zindex = 20,
+      on_attach = function(buf)
+        return vim.bo[buf].filetype ~= "markdown"
+      end,
     })
 
     vim.keymap.set("n", "<leader>ct", ":TSContextToggle<CR>", { silent = true, desc = "Toggle context" })
