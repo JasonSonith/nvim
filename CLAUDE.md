@@ -25,7 +25,7 @@ Personal Neovim + tmux dotfiles. `install.sh` symlinks `nvim/` → `~/.config/nv
 
 ## Cross-file invariants
 
-- **Tmux ↔ nvim pane nav** is split between `tmux/tmux.conf` and `nvim/lua/plugins/nvim-tmux-navigation.lua`. Both bind `Ctrl-h/j/k/l` *and* `Alt-h/j/k/l` (Alt is a fallback because some terminals send `Ctrl-h` as Backspace). Change one side, change the other.
+- **Tmux ↔ nvim pane nav** is split between `tmux/tmux.conf` and `nvim/lua/plugins/nvim-tmux-navigation.lua`. Both bind `Ctrl-h/k/l` *and* `Alt-h/j/k/l` (Alt is a fallback because some terminals send `Ctrl-h` as Backspace). `C-j` is intentionally bound only on the nvim side — tmux leaves it alone so shells can use it to submit multiline input; use `M-j` for pane-down outside nvim. Change one side, change the other.
 - **Catppuccin highlight overrides** in `nvim/lua/plugins/catppuccin.lua` are applied twice: first via `custom_highlights`, then imperatively in a `ColorScheme` autocmd. The autocmd is load-bearing — some plugins re-apply highlights after `setup()` and would clobber the first pass. Don't remove it.
 - **`ensure_installed` lists** are independent in `lsp-config.lua` (mason-lspconfig) and `treesitter.lua`. Adding a language usually means editing both.
 - **Leader keymaps**: declare new `<leader>`-prefixed groups/descriptions in `which-key.lua`'s `spec` so the popup stays accurate. Leader is `<Space>`.

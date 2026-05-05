@@ -177,6 +177,16 @@ backup_then_link "${DOTFILES_DIR}/nvim" "$HOME/.config/nvim"
 backup_then_link "${DOTFILES_DIR}/tmux/tmux.conf" "$HOME/.tmux.conf"
 
 # ---------- Plugins ----------
+# ---------- Python tools used by nvim ----------
+color "==> Installing Python helpers (xlsx2csv)"
+if command -v pip3 >/dev/null 2>&1; then
+  pip3 install --user --quiet --break-system-packages xlsx2csv 2>/dev/null \
+    || pip3 install --user --quiet xlsx2csv \
+    || warn "pip3 install xlsx2csv failed — xlsx viewing in nvim won't work until you install it manually"
+else
+  warn "pip3 not found — skip xlsx2csv install"
+fi
+
 color "==> Bootstrapping Neovim plugins (may take a minute)"
 nvim --headless "+Lazy! sync" "+qa" 2>/dev/null || true
 nvim --headless "+TSUpdateSync" "+qa" 2>/dev/null || true
