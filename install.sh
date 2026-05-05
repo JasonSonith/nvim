@@ -176,7 +176,25 @@ backup_then_link() {
 backup_then_link "${DOTFILES_DIR}/nvim" "$HOME/.config/nvim"
 backup_then_link "${DOTFILES_DIR}/tmux/tmux.conf" "$HOME/.tmux.conf"
 
-# ---------- Plugins ----------
+# ---------- Tmux plugins (TPM: tmux-resurrect, tmux-continuum) ----------
+color "==> Bootstrapping tmux plugins (TPM)"
+TPM_DIR="$HOME/.tmux/plugins/tpm"
+if [[ -d "$TPM_DIR/.git" ]]; then
+  info "TPM already present at $TPM_DIR"
+else
+  git clone --depth 1 https://github.com/tmux-plugins/tpm "$TPM_DIR"
+  info "cloned TPM to $TPM_DIR"
+fi
+# install_plugins reads TMUX_PLUGIN_MANAGER_PATH from the tmux server's global env.
+# That var is only set once TPM has been loaded from tmux.conf, so set it manually
+# here (start-server is a no-op if a server is already running).
+tmux start-server \; set-environment -g TMUX_PLUGIN_MANAGER_PATH "$HOME/.tmux/plugins/" 2>/dev/null || true
+if "$TPM_DIR/bin/install_plugins" >/dev/null 2>&1; then
+  info "tmux plugins installed (resurrect, continuum)"
+else
+  warn "TPM install_plugins failed — press prefix+I inside tmux to retry"
+fi
+
 # ---------- Python tools used by nvim ----------
 color "==> Installing Python helpers (xlsx2csv)"
 if command -v pip3 >/dev/null 2>&1; then

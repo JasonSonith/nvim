@@ -14,6 +14,16 @@ Personal Neovim + tmux dotfiles. `install.sh` symlinks `nvim/` → `~/.config/nv
 - `nvim/lua/plugins.lua` (the file) is intentionally `return {}` — the `plugins/` directory shadows it. Don't put specs in it.
 - `nvim/lazy-lock.json` is committed (pinned versions across machines). After a spec change, run `:Lazy sync` and commit the lockfile diff.
 
+## Tmux plugins (TPM)
+
+`tmux.conf` declares plugins via `@plugin` lines. `install.sh` clones TPM to `~/.tmux/plugins/tpm` and runs `bin/install_plugins`; `tmux.conf` also self-bootstraps TPM (clones on first tmux launch if missing). Inside tmux: `prefix + I` installs new plugins, `prefix + U` updates them.
+
+Active plugins:
+- **tmux-resurrect** — manual save (`prefix + Ctrl-s`) / restore (`prefix + Ctrl-r`). Captures pane contents; restores nvim sessions when a `Session.vim` is present in the pane's cwd (`@resurrect-strategy-nvim 'session'`).
+- **tmux-continuum** — auto-saves every 15 min and auto-restores on tmux server start (`@continuum-restore 'on'`). After a reboot, just run `tmux` and the previous session comes back.
+
+The `run '~/.tmux/plugins/tpm/tpm'` line at the bottom of `tmux.conf` must stay last — anything below it is loaded before TPM and won't see plugin-provided commands.
+
 ## Reload after editing
 
 | Change | Reload |
@@ -21,6 +31,7 @@ Personal Neovim + tmux dotfiles. `install.sh` symlinks `nvim/` → `~/.config/nv
 | New/edited file under `nvim/lua/plugins/` | `:Lazy sync` (or `nvim --headless "+Lazy! sync" "+qa"`) |
 | Treesitter parser config | `:TSUpdateSync` |
 | `tmux/tmux.conf` | `prefix r` in tmux (prefix is `Ctrl-a`, not `Ctrl-b`) |
+| New `@plugin` line in `tmux.conf` | `prefix + I` in tmux, or `~/.tmux/plugins/tpm/bin/install_plugins` |
 | Lua under `nvim/lua/` | Restart nvim, or `:source %` |
 
 ## Cross-file invariants
