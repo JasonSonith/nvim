@@ -23,8 +23,15 @@ return {
       require("treesitter-context").go_to_context(vim.v.count1)
     end, { silent = true, desc = "Jump to context" })
 
-    vim.api.nvim_set_hl(0, "TreesitterContext", { bg = "#181825" })
-    vim.api.nvim_set_hl(0, "TreesitterContextLineNumber", { bg = "#181825", fg = "#7f849c" })
-    vim.api.nvim_set_hl(0, "TreesitterContextBottom", { underline = true, sp = "#45475a" })
+    -- Pull from catppuccin's palette so colors stay in sync if we ever swap flavors,
+    -- and reapply on ColorScheme so highlights survive plugin-triggered reloads.
+    local function apply_hl()
+      local C = require("catppuccin.palettes").get_palette("mocha")
+      vim.api.nvim_set_hl(0, "TreesitterContext", { bg = C.mantle })
+      vim.api.nvim_set_hl(0, "TreesitterContextLineNumber", { bg = C.mantle, fg = C.overlay1 })
+      vim.api.nvim_set_hl(0, "TreesitterContextBottom", { underline = true, sp = C.surface1 })
+    end
+    apply_hl()
+    vim.api.nvim_create_autocmd("ColorScheme", { callback = apply_hl })
   end,
 }

@@ -15,7 +15,7 @@ return {
       { "<leader>cv", desc = "Toggle code suggestions" },
       { "<leader>r", group = "rename" },
       { "<leader>m", group = "markdown" },
-      { "<leader>t", group = "test" },
+      { "<leader>t", desc = "Run nearest test" },
       { "<leader>1", desc = "Tab 1" },
       { "<leader>2", desc = "Tab 2" },
       { "<leader>3", desc = "Tab 3" },

@@ -69,12 +69,10 @@ vim.api.nvim_create_user_command("XlsxSheets", function()
     vim.notify("Not in an xlsx-derived buffer", vim.log.levels.WARN)
     return
   end
-  local out = vim.fn.systemlist("xlsx2csv -p '|' -a " .. vim.fn.shellescape(path) .. " 2>&1 | head -50")
-  -- Fallback: list sheets via python
+  local out = vim.fn.systemlist({ "xlsx2csv", "-l", path })
   if vim.v.shell_error ~= 0 then
-    out = vim.fn.systemlist(string.format(
-      [[python3 -c "from openpyxl import load_workbook; print('\n'.join(load_workbook(%q, read_only=True).sheetnames))"]],
-      path))
+    vim.notify("xlsx2csv -l failed:\n" .. table.concat(out, "\n"), vim.log.levels.ERROR)
+    return
   end
   vim.notify("Sheets:\n" .. table.concat(out, "\n"), vim.log.levels.INFO)
 end, { desc = "List sheets in current xlsx buffer" })
