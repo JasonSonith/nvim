@@ -16,6 +16,7 @@ return {
         native_lsp = { enabled = true },
         cmp = true,
         bufferline = true,
+        indent_blankline = { enabled = true },
       },
       custom_highlights = function(colors)
         local panel_bg = colors.mantle
