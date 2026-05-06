@@ -20,6 +20,9 @@ return {
 
       cmp.setup({
         enabled = function()
+          if vim.bo.filetype == "neo-tree-popup" then
+            return false
+          end
           return cmp_enabled
         end,
         snippet = {
