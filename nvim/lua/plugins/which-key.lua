@@ -29,6 +29,12 @@ return {
       { "<leader>l", desc = "Run last test" },
       { "<leader>a", desc = "Run all tests" },
       { "<leader>T", desc = "Run file tests" },
+      { "<leader>u",  group = "ui / theme" },
+      { "<leader>uc", desc = "Catppuccin" },
+      { "<leader>uk", desc = "Kanagawa" },
+      { "<leader>uv", desc = "VSCode" },
+      { "<leader>ur", desc = "Rose Pine" },
+      { "<leader>ub", desc = "Toggle transparency" },
     },
   },
   keys = {
