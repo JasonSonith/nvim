@@ -43,7 +43,33 @@ return {
           ["<C-f>"] = cmp.mapping.scroll_docs(4),
           ["<C-Space>"] = cmp.mapping.complete(),
           ["<C-e>"] = cmp.mapping.abort(),
-          ["<CR>"] = cmp.mapping.confirm({ select = true }),
+          ["<CR>"] = cmp.mapping(function(fallback)
+            local line = vim.api.nvim_get_current_line()
+            local col = vim.fn.col(".")
+            local prev = line:sub(col - 1, col - 1)
+            local next_ = line:sub(col, col)
+            local pairs_map = { ["{"] = "}", ["("] = ")", ["["] = "]" }
+            if pairs_map[prev] == next_ then
+              if cmp.visible() then cmp.close() end
+              local row = vim.fn.line(".")
+              local indent = vim.fn.indent(row)
+              local sw = vim.bo.shiftwidth
+              local before = line:sub(1, col - 1)
+              local after = line:sub(col)
+              vim.api.nvim_buf_set_lines(0, row - 1, row, false, {
+                before,
+                string.rep(" ", indent + sw),
+                string.rep(" ", indent) .. after,
+              })
+              vim.api.nvim_win_set_cursor(0, { row + 1, indent + sw })
+              return
+            end
+            if cmp.visible() and cmp.get_active_entry() then
+              cmp.confirm({ select = false })
+            else
+              fallback()
+            end
+          end, { "i", "s" }),
           ["<Tab>"] = cmp.mapping(function(fallback)
             if cmp.visible() then
               cmp.confirm({ select = true })
