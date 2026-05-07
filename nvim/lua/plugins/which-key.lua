@@ -23,6 +23,7 @@ return {
       { "<leader>5", desc = "Tab 5" },
       { "<leader>e", desc = "Toggle file tree" },
       { "<leader>h", desc = "Clear search highlight" },
+      { "<leader>i", desc = "Toggle indent guides" },
       { "<leader>w", desc = "Save file" },
       { "<leader>q", desc = "Quit" },
       { "<leader>l", desc = "Run last test" },
