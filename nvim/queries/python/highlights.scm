@@ -80,7 +80,17 @@
 ] @string.escape
 
 ; doc-strings
-(expression_statement
+; tree-sitter-python marked `expression_statement` as a supertype, so docstrings
+; appear as bare `string` nodes directly under `block` / `module`.
+(block
+  .
+  (string
+    (string_content) @spell) @string.documentation)
+
+(module
+  .
+  (comment)*
+  .
   (string
     (string_content) @spell) @string.documentation)
 
