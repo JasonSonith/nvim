@@ -16,6 +16,18 @@ vim.opt.cursorline = false
 vim.opt.scrolloff = 8
 vim.opt.mouse = "a"
 vim.opt.clipboard = "unnamedplus"
+
+-- Over SSH, route +/* registers through OSC52 so yanks land in the local
+-- terminal's clipboard (Windows Terminal / WezTerm / etc). No-op locally.
+if os.getenv("SSH_TTY") then
+  local osc52 = require("vim.ui.clipboard.osc52")
+  vim.g.clipboard = {
+    name = "OSC 52",
+    copy = { ["+"] = osc52.copy("+"), ["*"] = osc52.copy("*") },
+    paste = { ["+"] = osc52.paste("+"), ["*"] = osc52.paste("*") },
+  }
+end
+
 vim.opt.splitright = true
 vim.opt.splitbelow = true
 vim.opt.ignorecase = true
