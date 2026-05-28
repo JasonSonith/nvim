@@ -149,7 +149,10 @@ if [[ $need_install -eq 1 ]]; then
       warn "Failed to download Neovim. Check network. Continuing with whatever nvim is on PATH."
     else
       $SUDO tar -C /opt -xzf "/tmp/${tarball}"
-      extracted_dir=$(tar -tzf "/tmp/${tarball}" | head -1 | cut -d/ -f1)
+      # Derive the extracted dir from the tarball name. `tar -tzf | head -1`
+      # overflows the pipe buffer on large archives; head closes early, tar
+      # dies with SIGPIPE (141), pipefail surfaces it, set -e kills silently.
+      extracted_dir="${tarball%.tar.gz}"
       $SUDO ln -sf "/opt/${extracted_dir}/bin/nvim" /usr/local/bin/nvim
       rm "/tmp/${tarball}"
       info "installed nvim -> /usr/local/bin/nvim ($(/usr/local/bin/nvim --version | head -1 | awk '{print $2}'))"
