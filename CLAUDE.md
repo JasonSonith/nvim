@@ -47,7 +47,7 @@ The `run '~/.tmux/plugins/tpm/tpm'` line at the bottom of `tmux.conf` must stay 
 
 ## Treesitter
 
-Python parser is pinned to the `master` branch revision (`parser_config.python.install_info.revision = "master"` in `treesitter.lua`), and `nvim/queries/python/highlights.scm` ships a custom highlight query that overrides the upstream one.
+Python parser is pinned to the `master` branch revision (`parser_config.python.install_info.revision = "master"` in `treesitter.lua`), and `nvim/queries/python/highlights.scm` ships a custom highlight query that overrides the upstream one. `nvim/queries/python/indents.scm` likewise overrides nvim-treesitter's indent query, which doesn't compile against the master parser (a broken indent query makes every new Python line indent to column 0).
 
 ## install.sh gotchas
 
