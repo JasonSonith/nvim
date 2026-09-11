@@ -11,7 +11,7 @@ return {
     lazy = false,
     dependencies = { "williamboman/mason.nvim" },
     opts = {
-      ensure_installed = { "lua_ls", "ts_ls", "html", "cssls", "pyright", "bashls", "clangd", "ruff" },
+      ensure_installed = { "lua_ls", "ts_ls", "html", "cssls", "pyright", "bashls", "clangd", "ruff", "emmet_ls" },
       automatic_enable = true,
     },
   },
