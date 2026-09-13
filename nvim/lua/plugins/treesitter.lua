@@ -20,5 +20,22 @@ return {
       highlight = { enable = true },
       indent = { enable = true },
     })
+
+    -- nvim-treesitter (master) registers its predicates with `all = false`,
+    -- which Neovim 0.12 dropped: handlers now always receive a list of nodes,
+    -- so `kind-eq?` throws and every indentexpr call that hits it returns 0.
+    -- Symptom: pressing <CR> inside a JS/TS block snaps the new line to
+    -- column 0. Re-register it list-aware.
+    require("nvim-treesitter.query_predicates")
+    vim.treesitter.query.add_predicate("kind-eq?", function(match, _, _, pred)
+      local node = match[pred[2]]
+      if type(node) == "table" then
+        node = node[1]
+      end
+      if not node then
+        return true
+      end
+      return vim.list_contains({ unpack(pred, 3) }, node:type())
+    end, { force = true })
   end,
 }
