@@ -75,3 +75,23 @@ local function smart_insert(default_key)
 end
 vim.keymap.set("n", "i", smart_insert("i"))
 vim.keymap.set("n", "a", smart_insert("a"))
+
+local runners = {
+  python = "python3 %",
+  javascript = "node %",
+  typescript = "npx tsx %",
+  sh = "bash %",
+  bash = "bash %",
+  lua = "lua %",
+  c = "gcc % -o /tmp/nvim-run.out && /tmp/nvim-run.out",
+}
+vim.keymap.set("n", "<leader>x", function()
+  local cmd = runners[vim.bo.filetype]
+  if not cmd then
+    vim.notify("No runner for filetype: " .. vim.bo.filetype, vim.log.levels.WARN)
+    return
+  end
+  vim.cmd("w")
+  vim.cmd("botright 15split | terminal " .. vim.fn.expandcmd(cmd))
+  vim.cmd("startinsert")
+end, { desc = "Run current file" })

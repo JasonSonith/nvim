@@ -1,1 +1,1 @@
-return { "rebelot/kanagawa.nvim", lazy = false }
+return { "rebelot/kanagawa.nvim" }

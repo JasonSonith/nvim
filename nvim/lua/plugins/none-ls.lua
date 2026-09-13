@@ -10,6 +10,13 @@ return {
       },
     })
 
-    vim.keymap.set("n", "<leader>gf", vim.lsp.buf.format, {})
+    vim.keymap.set("n", "<leader>gf", function()
+      local has_null_ls = #vim.lsp.get_clients({ bufnr = 0, name = "null-ls" }) > 0
+      vim.lsp.buf.format({
+        filter = function(client)
+          return not has_null_ls or client.name == "null-ls"
+        end,
+      })
+    end, { desc = "Format buffer" })
   end,
 }
