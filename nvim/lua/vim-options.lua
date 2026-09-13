@@ -95,3 +95,5 @@ vim.keymap.set("n", "<leader>x", function()
   vim.cmd("botright 15split | terminal " .. vim.fn.expandcmd(cmd))
   vim.cmd("startinsert")
 end, { desc = "Run current file" })
+
+vim.opt.showmode = false

@@ -1,0 +1,35 @@
+return {
+  "nvimdev/dashboard-nvim",
+  event = "VimEnter",
+  dependencies = { "nvim-tree/nvim-web-devicons" },
+  opts = {
+    theme = "hyper",
+    config = {
+      header = {
+        "",
+        "",
+        "                                                                     ",
+        "       ████ ██████           █████      ██                     ",
+        "      ███████████             █████                             ",
+        "      █████████ ███████████████████ ███   ███████████   ",
+        "     █████████  ███    █████████████ █████ ██████████████   ",
+        "    █████████ ██████████ █████████ █████ █████ ████ █████   ",
+        "  ███████████ ███    ███ █████████ █████ █████ ████ █████  ",
+        " ██████  █████████████████████ ████ █████ █████ ████ ██████ ",
+        "",
+        "",
+      },
+      shortcut = {
+        { desc = "󰊳 Update", group = "@property", action = "Lazy update", key = "u" },
+        { desc = " Files", group = "Label", action = "Telescope find_files", key = "f" },
+        { desc = " Grep", group = "Number", action = "Telescope live_grep", key = "g" },
+        { desc = " Tree", group = "DiagnosticHint", action = "Neotree filesystem reveal left", key = "e" },
+        { desc = " Quit", group = "DiagnosticError", action = "qa", key = "q" },
+      },
+      packages = { enable = true },
+      project = { enable = true, limit = 8, action = "Telescope find_files cwd=" },
+      mru = { limit = 10 },
+      footer = {},
+    },
+  },
+}
