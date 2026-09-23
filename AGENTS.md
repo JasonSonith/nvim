@@ -52,5 +52,5 @@ Python parser is pinned to the `master` branch revision (`parser_config.python.i
 ## install.sh gotchas
 
 - Detects apt / dnf / pacman; on apt, **skips installing nodejs/npm if a node ≥18 is already on PATH** (apt's npm conflicts with NodeSource installs — adding both makes apt fail with unsatisfiable dependencies).
-- Requires Neovim ≥ 0.10; older/missing → downloads the latest release tarball and links `/usr/local/bin/nvim`. Version comparison is numeric (string compare gets `0.11` < `0.9` wrong).
+- Requires Neovim ≥ 0.11; older/missing → downloads the latest release tarball and links `/usr/local/bin/nvim`. Version comparison is numeric (string compare gets `0.11` < `0.9` wrong).
 - Pre-existing `~/.config/nvim` and `~/.tmux.conf` are backed up to `*.bak.<timestamp>` before symlinking — never silently overwrites.

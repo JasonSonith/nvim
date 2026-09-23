@@ -15,7 +15,7 @@ return {
     vim.treesitter.language.register("markdown", { "md" })
 
     require("nvim-treesitter.configs").setup({
-      ensure_installed = { "lua", "vim", "vimdoc", "bash", "c", "python", "javascript", "typescript", "html", "css", "json", "markdown", "markdown_inline" },
+      ensure_installed = { "lua", "vim", "vimdoc", "bash", "c", "python", "javascript", "typescript", "html", "css", "json", "markdown", "markdown_inline", "tsx", "yaml", "toml", "csv", "go" },
       auto_install = true,
       highlight = { enable = true },
       indent = { enable = true },

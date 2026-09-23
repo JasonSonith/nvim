@@ -31,7 +31,7 @@ cd ~/nvim-config
 
 The installer:
 1. Installs system packages: `git`, `tmux`, `ripgrep`, `fd`, `nodejs`, `npm`, `python3`, build tools.
-2. Installs the latest Neovim binary (if not already ≥ v0.10).
+2. Installs the latest Neovim binary (if not already ≥ v0.11).
 3. Symlinks `~/.config/nvim` → `nvim-config/nvim`, `~/.tmux.conf` → `nvim-config/tmux/tmux.conf` (existing files are backed up with a timestamp suffix).
 4. Bootstraps Neovim plugins via `lazy.nvim` and updates Treesitter parsers.
 

@@ -44,14 +44,18 @@ vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
 vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
 
 local function smart_insert(default_key)
+  -- "i" flag: feed ahead of pending typeahead, or macros/:normal run the rest first.
+  local function passthrough(keys)
+    vim.api.nvim_feedkeys(keys, "ni", false)
+  end
   return function()
     if vim.v.count > 0 then
-      vim.api.nvim_feedkeys(vim.v.count .. default_key, "n", false)
+      passthrough(vim.v.count .. default_key)
       return
     end
     local line = vim.api.nvim_get_current_line()
-    if not line:match("^%s*$") then
-      vim.api.nvim_feedkeys(default_key, "n", false)
+    if not line:match("^%s*$") or not vim.bo.modifiable or vim.bo.buftype ~= "" then
+      passthrough(default_key)
       return
     end
     local row = vim.fn.line(".")
@@ -77,13 +81,13 @@ vim.keymap.set("n", "i", smart_insert("i"))
 vim.keymap.set("n", "a", smart_insert("a"))
 
 local runners = {
-  python = "python3 %",
-  javascript = "node %",
-  typescript = "npx tsx %",
-  sh = "bash %",
-  bash = "bash %",
-  lua = "lua %",
-  c = "gcc % -o /tmp/nvim-run.out && /tmp/nvim-run.out",
+  python = "python3 %s",
+  javascript = "node %s",
+  typescript = "npx tsx %s",
+  sh = "bash %s",
+  bash = "bash %s",
+  lua = "nvim -l %s",
+  c = "gcc %s -o /tmp/nvim-run.out && /tmp/nvim-run.out",
 }
 vim.keymap.set("n", "<leader>x", function()
   local cmd = runners[vim.bo.filetype]
@@ -92,7 +96,9 @@ vim.keymap.set("n", "<leader>x", function()
     return
   end
   vim.cmd("w")
-  vim.cmd("botright 15split | terminal " .. vim.fn.expandcmd(cmd))
+  local file = vim.fn.shellescape(vim.fn.expand("%:p"))
+  vim.cmd("botright 15new")
+  vim.fn.jobstart(cmd:format(file), { term = true })
   vim.cmd("startinsert")
 end, { desc = "Run current file" })
 

@@ -116,9 +116,9 @@ else
 fi
 
 # ---------- Neovim ----------
-# Require >= 0.10. Compare numerically (string compare gets "0.11" < "0.9" wrong).
+# Require >= 0.11 (vim.lsp.config, vim.diagnostic.jump, mason-lspconfig v2). Compare numerically (string compare gets "0.11" < "0.9" wrong).
 NVIM_MIN_MAJOR=0
-NVIM_MIN_MINOR=10
+NVIM_MIN_MINOR=11
 
 color "==> Installing Neovim (if missing or outdated)"
 need_install=1
