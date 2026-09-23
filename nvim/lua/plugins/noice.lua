@@ -5,7 +5,16 @@ return {
     "MunifTanjim/nui.nvim",
     {
       "rcarriga/nvim-notify",
-      opts = { timeout = 3000, render = "compact", stages = "fade" },
+      opts = {
+        timeout = 3000,
+        render = "compact",
+        stages = "fade",
+        -- Fade blends into Normal's bg, which transparent themes leave unset.
+        background_colour = function()
+          local bg = vim.api.nvim_get_hl(0, { name = "Normal", link = false }).bg
+          return bg and string.format("#%06x", bg) or "#000000"
+        end,
+      },
     },
   },
   opts = {
