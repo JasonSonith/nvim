@@ -18,3 +18,9 @@ Thumbs.db
 
 # host-specific overrides — opt in by removing this line if you want to commit them
 nvim/lua/local.lua
+
+# graphify: keep graph.json, graph.html, GRAPH_REPORT.md; ignore local cache/state
+graphify-out/cache/
+graphify-out/manifest.json
+graphify-out/cost.json
+graphify-out/.graphify_*
