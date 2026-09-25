@@ -27,7 +27,7 @@ return {
 
     vim.keymap.set("n", "<C-n>", ":Neotree filesystem reveal left toggle<CR>", { silent = true })
     vim.keymap.set("n", "<leader>e", ":Neotree filesystem reveal left toggle<CR>", { silent = true })
-    vim.keymap.set("n", "<leader>bf", ":Neotree buffers reveal float<CR>", { silent = true })
+    vim.keymap.set("n", "<leader>bf", ":Neotree buffers reveal float<CR>", { silent = true, desc = "Buffer list (neo-tree)" })
 
     vim.api.nvim_create_autocmd("VimEnter", {
       callback = function()

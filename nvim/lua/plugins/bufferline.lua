@@ -23,8 +23,8 @@ return {
 
     vim.keymap.set("n", "<S-l>", ":BufferLineCycleNext<CR>", { silent = true, desc = "Next buffer" })
     vim.keymap.set("n", "<S-h>", ":BufferLineCyclePrev<CR>", { silent = true, desc = "Prev buffer" })
-    vim.keymap.set("n", "<leader>bp", ":BufferLinePick<CR>", { silent = true })
-    vim.keymap.set("n", "<leader>bc", ":bdelete<CR>", { silent = true })
+    vim.keymap.set("n", "<leader>bp", ":BufferLinePick<CR>", { silent = true, desc = "Pick buffer" })
+    vim.keymap.set("n", "<leader>bc", ":bdelete<CR>", { silent = true, desc = "Close buffer" })
     vim.keymap.set("n", "<leader>1", ":BufferLineGoToBuffer 1<CR>", { silent = true })
     vim.keymap.set("n", "<leader>2", ":BufferLineGoToBuffer 2<CR>", { silent = true })
     vim.keymap.set("n", "<leader>3", ":BufferLineGoToBuffer 3<CR>", { silent = true })
