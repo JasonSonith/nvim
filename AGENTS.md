@@ -54,3 +54,7 @@ Python parser is pinned to the `master` branch revision (`parser_config.python.i
 - Detects apt / dnf / pacman; on apt, **skips installing nodejs/npm if a node ≥18 is already on PATH** (apt's npm conflicts with NodeSource installs — adding both makes apt fail with unsatisfiable dependencies).
 - Requires Neovim ≥ 0.11; older/missing → downloads the latest release tarball and links `/usr/local/bin/nvim`. Version comparison is numeric (string compare gets `0.11` < `0.9` wrong).
 - Pre-existing `~/.config/nvim` and `~/.tmux.conf` are backed up to `*.bak.<timestamp>` before symlinking — never silently overwrites.
+
+## Knowledge graph (graphify)
+
+`graphify-out/` holds a committed knowledge graph of this repo (`graph.json`, `graph.html`, `GRAPH_REPORT.md`); its cache/manifest/state files are gitignored. **At the end of every session that changed files, run `/graphify . --update`** and commit the refreshed `graphify-out/` outputs alongside (or right after) the session's changes. graphify skips `.conf` files, so `tmux/tmux.conf` is not in the graph.
