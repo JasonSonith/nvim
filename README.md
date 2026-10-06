@@ -2,7 +2,7 @@
 
 Personal Neovim + tmux configuration that turns a terminal into a VSCode-style coding environment, with a side workflow for Claude Code in a tmux pane.
 
-Works on WSL2 Ubuntu, regular Ubuntu, Debian, Kali, Fedora, Arch.
+Works on macOS, WSL2 Ubuntu, regular Ubuntu, Debian, Kali, Fedora, Arch.
 
 ## What's inside
 
@@ -17,11 +17,15 @@ Works on WSL2 Ubuntu, regular Ubuntu, Debian, Kali, Fedora, Arch.
 │   └── queries/          # treesitter query overrides
 ├── tmux/
 │   └── tmux.conf         # contents of ~/.tmux.conf
+├── ghostty/              # contents of ~/.config/ghostty on macOS
+│   └── config.ghostty
 ├── install.sh            # symlinks configs into $HOME, installs deps
 └── README.md
 ```
 
 ## Quick start (new machine)
+
+On macOS, install [Homebrew](https://brew.sh) before running the installer.
 
 ```bash
 git clone git@github.com:JasonSonith/nvim.git ~/nvim-config
@@ -30,14 +34,22 @@ cd ~/nvim-config
 ```
 
 The installer:
-1. Installs system packages: `git`, `tmux`, `ripgrep`, `fd`, `nodejs`, `npm`, `python3`, build tools.
-2. Installs the latest Neovim binary (if not already ≥ v0.11).
-3. Symlinks `~/.config/nvim` → `nvim-config/nvim`, `~/.tmux.conf` → `nvim-config/tmux/tmux.conf` (existing files are backed up with a timestamp suffix).
-4. Bootstraps Neovim plugins via `lazy.nvim` and updates Treesitter parsers.
+1. Installs system packages with apt, dnf, or pacman on Linux; on macOS, Homebrew installs `git`, `neovim`, `tmux`, `ripgrep`, `fd`, `python`, `pipx`, `node` if missing, Ghostty, and the JetBrains Mono Nerd Font.
+2. Ensures Neovim is at least v0.11. On Linux, it downloads the latest release tarball if needed; on macOS, it suggests `brew upgrade neovim` if the brew version is too old.
+3. Symlinks `~/.config/nvim` → `nvim-config/nvim`, `~/.tmux.conf` → `nvim-config/tmux/tmux.conf`, and on macOS `~/.config/ghostty` → `nvim-config/ghostty` (existing files are backed up with a timestamp suffix).
+4. Installs `xlsx2csv` with pip3 on Linux or pipx on macOS, bootstraps tmux plugins, syncs Neovim plugins, and updates Treesitter parsers.
 
 After that:
 - `tmux` to start a session, `Ctrl-a e` to split nvim + Claude side-by-side.
 - `nvim .` to open a directory tree.
+
+## macOS notes
+
+- Ghostty is the terminal this config targets. `ghostty/config.ghostty` sets left Option as Alt, so `Option-h/j/k/l` moves between tmux panes and nvim splits; right Option still types symbols.
+- In tmux copy mode (`prefix [`, then `v`, then `y`), the selection should land in the macOS clipboard.
+- Icons in the bufferline and statusline should render; Ghostty has Nerd Font symbols built in.
+- `infocmp tmux-256color` should print an entry. If it errors, the system terminfo is missing it and tmux panes will misbehave.
+- If the xlsx viewer reports `xlsx2csv not found`, run `pipx ensurepath` and restart the shell.
 
 ## Highlights
 
@@ -48,6 +60,9 @@ After that:
 - **Fuzzy finder:** telescope (`Ctrl-p` files, `<Space>fg` grep)
 - **LSP:** mason + nvim-lspconfig (lua, ts, html, pyright, bash)
 - **Completion:** nvim-cmp + LuaSnip
+- **Formatting:** conform.nvim with Stylua, Prettier, and LSP fallback (`<Space>gf`)
+- **Motions and editing:** flash.nvim, nvim-surround, and mini.ai
+- **Search and replace:** grug-far.nvim (`<Space>sr`)
 - **Git:** gitsigns + fugitive
 - **Syntax:** treesitter on master branch, with a few query overrides
 - **Sticky context:** treesitter-context shows the enclosing function/class as you scroll
@@ -80,9 +95,9 @@ nvim --headless "+Lazy! sync" "+TSUpdateSync" "+qa"
 
 ## Dependencies
 
-- Linux or WSL2
+- macOS with Homebrew, Linux, or WSL2
 - Bash
-- A terminal with truecolor + (optional) transparency support — Windows Terminal, Wezterm, Alacritty, Kitty, etc.
+- A terminal with truecolor + (optional) transparency support — Ghostty on macOS, Windows Terminal, Wezterm, Alacritty, Kitty, etc.
 
 ## License
 

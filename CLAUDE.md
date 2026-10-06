@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repo purpose
 
-Personal Neovim + tmux dotfiles. `install.sh` symlinks `nvim/` → `~/.config/nvim` and `tmux/tmux.conf` → `~/.tmux.conf`, so **editing files in this repo directly modifies the user's live editor config** — there is no build step, the repo *is* the deployed config. There are no tests.
+Personal Neovim + tmux dotfiles. `install.sh` symlinks `nvim/` → `~/.config/nvim` and `tmux/tmux.conf` → `~/.tmux.conf`; on macOS, it also symlinks `ghostty/` → `~/.config/ghostty`. **Editing files in this repo directly modifies the user's live editor config** — there is no build step, the repo *is* the deployed config. There are no tests.
 
 ## Plugin architecture
 
@@ -36,14 +36,15 @@ The `run '~/.tmux/plugins/tpm/tpm'` line at the bottom of `tmux.conf` must stay 
 
 ## Cross-file invariants
 
-- **Tmux ↔ nvim pane nav** is split between `tmux/tmux.conf` and `nvim/lua/plugins/nvim-tmux-navigation.lua`. Both bind `Ctrl-h/k/l` *and* `Alt-h/j/k/l` (Alt is a fallback because some terminals send `Ctrl-h` as Backspace). `C-j` is intentionally bound only on the nvim side — tmux leaves it alone so shells can use it to submit multiline input; use `M-j` for pane-down outside nvim. Change one side, change the other.
+- **Tmux ↔ nvim pane nav** is split between `tmux/tmux.conf` and `nvim/lua/plugins/nvim-tmux-navigation.lua`. Both bind `Ctrl-h/k/l` *and* `Alt-h/j/k/l` (Alt is a fallback because some terminals send `Ctrl-h` as Backspace). On macOS, the Alt (`M-`) bindings depend on `macos-option-as-alt = left` in `ghostty/config.ghostty`. `C-j` is intentionally bound only on the nvim side — tmux leaves it alone so shells can use it to submit multiline input; use `M-j` for pane-down outside nvim. Change one side, change the other.
 - **Catppuccin highlight overrides** in `nvim/lua/plugins/catppuccin.lua` are applied twice: first via `custom_highlights`, then imperatively in a `ColorScheme` autocmd. The autocmd is load-bearing — some plugins re-apply highlights after `setup()` and would clobber the first pass. Don't remove it.
 - **`ensure_installed` lists** are independent in `lsp-config.lua` (mason-lspconfig) and `treesitter.lua`. Adding a language usually means editing both.
 - **Leader keymaps**: declare new `<leader>`-prefixed groups/descriptions in `which-key.lua`'s `spec` so the popup stays accurate. Leader is `<Space>`.
+- **Visual-mode `S`** belongs to nvim-surround, so flash binds `S` only in normal and operator-pending modes.
 
 ## Formatting
 
-`none-ls` provides `stylua` (Lua) and `prettier` (JS/TS/etc.), bound to `<leader>gf`. Add new formatters in `nvim/lua/plugins/none-ls.lua` and make sure the binary exists (Mason or system).
+`conform.nvim` uses `stylua` for Lua and `prettier` for JS/TS, CSS, HTML, JSON, YAML, and Markdown, with LSP formatting as fallback. `<leader>gf` formats the buffer. Format on save runs except for Markdown; `<leader>uf` toggles it. Add new formatters in `nvim/lua/plugins/conform.lua` and make sure the binary exists (Mason or system).
 
 ## Treesitter
 
@@ -52,7 +53,8 @@ Python parser is pinned to the `master` branch revision (`parser_config.python.i
 ## install.sh gotchas
 
 - Detects apt / dnf / pacman; on apt, **skips installing nodejs/npm if a node ≥18 is already on PATH** (apt's npm conflicts with NodeSource installs — adding both makes apt fail with unsatisfiable dependencies).
-- Requires Neovim ≥ 0.11; older/missing → downloads the latest release tarball and links `/usr/local/bin/nvim`. Version comparison is numeric (string compare gets `0.11` < `0.9` wrong).
+- On macOS, Homebrew must already be installed; the installer does not install it and never runs `brew` under sudo. Neovim comes from brew, `xlsx2csv` from pipx, and the script must remain compatible with system Bash 3.2.
+- Requires Neovim ≥ 0.11; on Linux, older/missing → downloads the latest release tarball and links `/usr/local/bin/nvim`. The tarball path is Linux-only; on macOS, upgrade through brew. Version comparison is numeric (string compare gets `0.11` < `0.9` wrong).
 - Pre-existing `~/.config/nvim` and `~/.tmux.conf` are backed up to `*.bak.<timestamp>` before symlinking — never silently overwrites.
 
 ## Knowledge graph (graphify)
