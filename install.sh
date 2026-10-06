@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # install.sh — set up Jason's Neovim + tmux config on a fresh machine
-# Supports: Ubuntu / Debian / Kali / Mint (apt), Fedora / RHEL (dnf), Arch (pacman)
+# Supports: macOS (Homebrew), Ubuntu / Debian / Kali / Mint (apt), Fedora / RHEL (dnf), Arch (pacman)
 set -euo pipefail
 
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TS=$(date +%s)
+OS=$(uname -s)
 
 color() { printf "\033[1;36m%s\033[0m\n" "$1"; }
 warn()  { printf "\033[1;33m%s\033[0m\n" "$1"; }
@@ -14,7 +15,9 @@ info()  { printf "    %s\n" "$1"; }
 DISTRO_ID=""
 DISTRO_LIKE=""
 DISTRO_PRETTY="unknown"
-if [[ -f /etc/os-release ]]; then
+if [[ "$OS" == "Darwin" ]]; then
+  DISTRO_PRETTY="macOS $(sw_vers -productVersion)"
+elif [[ -f /etc/os-release ]]; then
   # shellcheck disable=SC1091
   . /etc/os-release
   DISTRO_ID="${ID:-}"
@@ -43,7 +46,27 @@ is_apt_family() {
 }
 
 color "==> Installing system packages"
-if is_apt_family || command -v apt >/dev/null 2>&1; then
+if [[ "$OS" == "Darwin" ]]; then
+  if ! command -v brew >/dev/null 2>&1; then
+    warn "Homebrew is required. Install it from https://brew.sh and re-run this installer."
+    exit 1
+  fi
+  info "package manager: Homebrew"
+  BREW_PKGS=(git neovim tmux ripgrep fd python pipx)
+  # Same bar as the apt branch: keep an existing Node only if it is >= 18 and has npm.
+  EXISTING_NODE_MAJOR=0
+  if command -v node >/dev/null 2>&1 && command -v npm >/dev/null 2>&1; then
+    EXISTING_NODE_MAJOR=$(node -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0)
+  fi
+  if (( EXISTING_NODE_MAJOR < 18 )); then
+    BREW_PKGS+=(node)
+  fi
+  brew install "${BREW_PKGS[@]}"
+  # A cask errors if its app was already installed by hand; don't let that abort the setup.
+  brew install --cask ghostty font-jetbrains-mono-nerd-font \
+    || warn "brew cask install failed — install Ghostty and the Nerd Font manually if they're missing"
+
+elif is_apt_family || command -v apt >/dev/null 2>&1; then
   info "package manager: apt (${DISTRO_ID:-debian-family})"
   $SUDO apt update
 
@@ -136,7 +159,9 @@ if command -v nvim >/dev/null 2>&1; then
     info "nvim ${current_full} is below ${NVIM_MIN_MAJOR}.${NVIM_MIN_MINOR}, replacing"
   fi
 fi
-if [[ $need_install -eq 1 ]]; then
+if [[ $need_install -eq 1 && "$OS" == "Darwin" ]]; then
+  warn "Neovim ${NVIM_MIN_MAJOR}.${NVIM_MIN_MINOR} or newer is required. Try brew upgrade neovim."
+elif [[ $need_install -eq 1 ]]; then
   arch=$(uname -m)
   case "$arch" in
     x86_64) tarball="nvim-linux-x86_64.tar.gz" ;;
@@ -178,6 +203,9 @@ backup_then_link() {
 
 backup_then_link "${DOTFILES_DIR}/nvim" "$HOME/.config/nvim"
 backup_then_link "${DOTFILES_DIR}/tmux/tmux.conf" "$HOME/.tmux.conf"
+if [[ "$OS" == "Darwin" ]]; then
+  backup_then_link "${DOTFILES_DIR}/ghostty" "$HOME/.config/ghostty"
+fi
 
 # ---------- Tmux plugins (TPM: tmux-resurrect, tmux-continuum) ----------
 color "==> Bootstrapping tmux plugins (TPM)"
@@ -200,7 +228,13 @@ fi
 
 # ---------- Python tools used by nvim ----------
 color "==> Installing Python helpers (xlsx2csv)"
-if command -v pip3 >/dev/null 2>&1; then
+if [[ "$OS" == "Darwin" ]]; then
+  pipx install xlsx2csv || warn "pipx install xlsx2csv failed — xlsx viewing in nvim won't work until you install it manually"
+  case ":$PATH:" in
+    *":$HOME/.local/bin:"*) ;;
+    *) warn "The xlsx viewer needs $HOME/.local/bin on PATH. Run pipx ensurepath and restart your shell." ;;
+  esac
+elif command -v pip3 >/dev/null 2>&1; then
   pip3 install --user --quiet --break-system-packages xlsx2csv 2>/dev/null \
     || pip3 install --user --quiet xlsx2csv \
     || warn "pip3 install xlsx2csv failed — xlsx viewing in nvim won't work until you install it manually"

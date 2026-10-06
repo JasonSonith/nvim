@@ -1,0 +1,11 @@
+# Ghostty config (macOS). install.sh symlinks this directory to ~/.config/ghostty.
+
+theme = Catppuccin Mocha
+
+# Left Option sends Alt so the M-h/j/k/l and M-,/M-. bindings in tmux.conf and
+# nvim-tmux-navigation.lua work; right Option still types symbols.
+macos-option-as-alt = left
+
+# Over SSH, install Ghostty's terminfo on the remote (or fall back to
+# xterm-256color) so tmux and nvim there don't fail on TERM=xterm-ghostty.
+shell-integration-features = ssh-env,ssh-terminfo
