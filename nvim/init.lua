@@ -12,6 +12,17 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 require("vim-options")
-require("lazy").setup("plugins")
-require("themes").setup()
-require("highlights")
+require("lazy").setup("plugins", {
+  -- Inside VSCode (vscode-neovim), only plugins marked `vscode = true` load.
+  defaults = {
+    cond = function(plugin)
+      return not vim.g.vscode or plugin.vscode == true
+    end,
+  },
+})
+if vim.g.vscode then
+  require("vscode-keymaps")
+else
+  require("themes").setup()
+  require("highlights")
+end
