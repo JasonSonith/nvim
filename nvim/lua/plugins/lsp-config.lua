@@ -1,3 +1,10 @@
+-- Mason has no clangd build for Linux arm64 (e.g. Kali container on Apple Silicon); use apt's clangd there.
+local system_clangd = vim.fn.has("linux") == 1 and vim.uv.os_uname().machine == "aarch64"
+local servers = { "lua_ls", "ts_ls", "html", "cssls", "pyright", "bashls", "ruff", "emmet_ls" }
+if not system_clangd then
+  table.insert(servers, "clangd")
+end
+
 return {
   {
     "williamboman/mason.nvim",
@@ -18,7 +25,7 @@ return {
     lazy = false,
     dependencies = { "williamboman/mason.nvim" },
     opts = {
-      ensure_installed = { "lua_ls", "ts_ls", "html", "cssls", "pyright", "bashls", "clangd", "ruff", "emmet_ls" },
+      ensure_installed = servers,
       automatic_enable = true,
     },
   },
@@ -29,6 +36,10 @@ return {
     config = function()
       local capabilities = require("cmp_nvim_lsp").default_capabilities()
       vim.lsp.config("*", { capabilities = capabilities })
+      -- automatic_enable only covers Mason-installed servers
+      if system_clangd and vim.fn.executable("clangd") == 1 then
+        vim.lsp.enable("clangd")
+      end
 
       vim.diagnostic.config({
         virtual_text = { prefix = "●", spacing = 2 },

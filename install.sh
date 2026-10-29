@@ -76,6 +76,7 @@ elif is_apt_family || command -v apt >/dev/null 2>&1; then
     tmux
     ripgrep fd-find
     python3 python3-pip python3-venv
+    clangd  # Mason's clangd has no Linux arm64 build
   )
 
   # Kali-only nice-to-haves (skip silently on others)
